@@ -28,6 +28,8 @@
 #include <SFML/Window/InputImpl.hpp>
 #include <SFML/Window/Touch.hpp>
 
+#include <cassert>
+
 
 namespace sf::Touch
 {
@@ -41,6 +43,7 @@ bool isDown(unsigned int finger)
 ////////////////////////////////////////////////////////////
 Vector2i getPosition(unsigned int finger)
 {
+    assert(isDown(finger) && "Touch::getPosition() Finger must already be down");
     return priv::InputImpl::getTouchPosition(finger);
 }
 
@@ -48,6 +51,7 @@ Vector2i getPosition(unsigned int finger)
 ////////////////////////////////////////////////////////////
 Vector2i getPosition(unsigned int finger, const WindowBase& relativeTo)
 {
+    assert(isDown(finger) && "Touch::getPosition() Finger must already be down");
     return priv::InputImpl::getTouchPosition(finger, relativeTo);
 }
 
