@@ -108,6 +108,12 @@ public:
     VertexBuffer(PrimitiveType type, Usage usage);
 
     ////////////////////////////////////////////////////////////
+    /// \brief Destructor
+    ///
+    ////////////////////////////////////////////////////////////
+    ~VertexBuffer() override;
+
+    ////////////////////////////////////////////////////////////
     /// \brief Copy constructor
     ///
     /// \param copy instance to copy
@@ -116,10 +122,32 @@ public:
     VertexBuffer(const VertexBuffer& copy);
 
     ////////////////////////////////////////////////////////////
-    /// \brief Destructor
+    /// \brief Overload of assignment operator
+    ///
+    /// \param right Instance to assign
+    ///
+    /// \return Reference to self
     ///
     ////////////////////////////////////////////////////////////
-    ~VertexBuffer() override;
+    VertexBuffer& operator=(const VertexBuffer& right);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Move constructor
+    ///
+    /// \param right Instance to move
+    ///
+    ////////////////////////////////////////////////////////////
+    VertexBuffer(VertexBuffer&& right) noexcept;
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Move assignment
+    ///
+    /// \param right Instance to assign
+    ///
+    /// \return Reference to self
+    ///
+    ////////////////////////////////////////////////////////////
+    VertexBuffer& operator=(VertexBuffer&& right) noexcept;
 
     ////////////////////////////////////////////////////////////
     /// \brief Create the vertex buffer
@@ -209,16 +237,6 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     [[nodiscard]] bool update(const VertexBuffer& vertexBuffer);
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Overload of assignment operator
-    ///
-    /// \param right Instance to assign
-    ///
-    /// \return Reference to self
-    ///
-    ////////////////////////////////////////////////////////////
-    VertexBuffer& operator=(const VertexBuffer& right);
 
     ////////////////////////////////////////////////////////////
     /// \brief Swap the contents of this vertex buffer with those of another

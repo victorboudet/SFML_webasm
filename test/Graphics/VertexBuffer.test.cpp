@@ -16,10 +16,8 @@ TEST_CASE("[Graphics] sf::VertexBuffer", "[.display]")
     {
         STATIC_CHECK(std::is_copy_constructible_v<sf::VertexBuffer>);
         STATIC_CHECK(std::is_copy_assignable_v<sf::VertexBuffer>);
-        STATIC_CHECK(std::is_move_constructible_v<sf::VertexBuffer>);
-        STATIC_CHECK(!std::is_nothrow_move_constructible_v<sf::VertexBuffer>);
-        STATIC_CHECK(std::is_move_assignable_v<sf::VertexBuffer>);
-        STATIC_CHECK(!std::is_nothrow_move_assignable_v<sf::VertexBuffer>);
+        STATIC_CHECK(std::is_nothrow_move_constructible_v<sf::VertexBuffer>);
+        STATIC_CHECK(std::is_nothrow_move_assignable_v<sf::VertexBuffer>);
         STATIC_CHECK(std::is_nothrow_swappable_v<sf::VertexBuffer>);
     }
 
@@ -83,6 +81,30 @@ TEST_CASE("[Graphics] sf::VertexBuffer", "[.display]")
         {
             sf::VertexBuffer vertexBufferCopy;
             vertexBufferCopy = vertexBuffer;
+            CHECK(vertexBufferCopy.getVertexCount() == 0);
+            CHECK(vertexBufferCopy.getNativeHandle() == 0);
+            CHECK(vertexBufferCopy.getPrimitiveType() == sf::PrimitiveType::LineStrip);
+            CHECK(vertexBufferCopy.getUsage() == sf::VertexBuffer::Usage::Dynamic);
+        }
+    }
+
+    SECTION("Move semantics")
+    {
+        SECTION("Construction")
+        {
+            sf::VertexBuffer       vertexBuffer(sf::PrimitiveType::LineStrip, sf::VertexBuffer::Usage::Dynamic);
+            const sf::VertexBuffer vertexBufferCopy(std::move(vertexBuffer));
+            CHECK(vertexBufferCopy.getVertexCount() == 0);
+            CHECK(vertexBufferCopy.getNativeHandle() == 0);
+            CHECK(vertexBufferCopy.getPrimitiveType() == sf::PrimitiveType::LineStrip);
+            CHECK(vertexBufferCopy.getUsage() == sf::VertexBuffer::Usage::Dynamic);
+        }
+
+        SECTION("Assignment")
+        {
+            sf::VertexBuffer vertexBuffer(sf::PrimitiveType::LineStrip, sf::VertexBuffer::Usage::Dynamic);
+            sf::VertexBuffer vertexBufferCopy;
+            vertexBufferCopy = std::move(vertexBuffer);
             CHECK(vertexBufferCopy.getVertexCount() == 0);
             CHECK(vertexBufferCopy.getNativeHandle() == 0);
             CHECK(vertexBufferCopy.getPrimitiveType() == sf::PrimitiveType::LineStrip);

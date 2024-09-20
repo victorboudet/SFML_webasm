@@ -82,6 +82,18 @@ VertexBuffer::VertexBuffer(PrimitiveType type, Usage usage) : m_primitiveType(ty
 
 
 ////////////////////////////////////////////////////////////
+VertexBuffer::~VertexBuffer()
+{
+    if (m_buffer)
+    {
+        const TransientContextLock contextLock;
+
+        glCheck(GLEXT_glDeleteBuffers(1, &m_buffer));
+    }
+}
+
+
+////////////////////////////////////////////////////////////
 VertexBuffer::VertexBuffer(const VertexBuffer& copy) :
 GlResource(copy),
 m_primitiveType(copy.m_primitiveType),
@@ -102,14 +114,49 @@ m_usage(copy.m_usage)
 
 
 ////////////////////////////////////////////////////////////
-VertexBuffer::~VertexBuffer()
+VertexBuffer& VertexBuffer::operator=(const VertexBuffer& right)
 {
+    VertexBuffer temp(right);
+
+    swap(temp);
+
+    return *this;
+}
+
+
+////////////////////////////////////////////////////////////
+VertexBuffer::VertexBuffer(VertexBuffer&& right) noexcept :
+m_buffer(std::exchange(right.m_buffer, 0)),
+m_size(std::exchange(right.m_size, 0)),
+m_primitiveType(std::exchange(right.m_primitiveType, PrimitiveType::Points)),
+m_usage(std::exchange(right.m_usage, Usage::Stream))
+{
+}
+
+
+////////////////////////////////////////////////////////////
+VertexBuffer& VertexBuffer::operator=(VertexBuffer&& right) noexcept
+{
+    // Make sure we aren't moving ourselves
+    if (&right == this)
+    {
+        return *this;
+    }
+
     if (m_buffer)
     {
         const TransientContextLock contextLock;
 
         glCheck(GLEXT_glDeleteBuffers(1, &m_buffer));
     }
+
+    // Move the contents of right
+    m_buffer        = std::exchange(right.m_buffer, 0);
+    m_size          = std::exchange(right.m_size, 0);
+    m_primitiveType = std::exchange(right.m_primitiveType, PrimitiveType::Points);
+    m_usage         = std::exchange(right.m_usage, Usage::Stream);
+
+    return *this;
 }
 
 
@@ -255,17 +302,6 @@ bool VertexBuffer::update([[maybe_unused]] const VertexBuffer& vertexBuffer)
     return (sourceResult == GL_TRUE) && (destinationResult == GL_TRUE);
 
 #endif // SFML_OPENGL_ES
-}
-
-
-////////////////////////////////////////////////////////////
-VertexBuffer& VertexBuffer::operator=(const VertexBuffer& right)
-{
-    VertexBuffer temp(right);
-
-    swap(temp);
-
-    return *this;
 }
 
 
