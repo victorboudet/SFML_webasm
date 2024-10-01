@@ -111,4 +111,34 @@ TEST_CASE("[Graphics] sf::VertexArray")
         vertexArray.append({{10, 10}});
         CHECK(vertexArray.getBounds() == sf::FloatRect({2, 2}, {8, 8}));
     }
+
+    SECTION("Ranged loop")
+    {
+        sf::VertexArray vertexArray;
+        vertexArray.append({{1, 1}});
+        vertexArray.append({{1, 1}});
+        vertexArray.append({{1, 1}});
+
+        std::size_t count = 0;
+
+        SECTION("Const")
+        {
+            for (const auto& vertex : std::as_const(vertexArray))
+            {
+                CHECK(vertex.position == sf::Vector2f(1, 1));
+                ++count;
+            }
+        }
+
+        SECTION("Non const")
+        {
+            for (const auto& vertex : vertexArray)
+            {
+                CHECK(vertex.position == sf::Vector2f(1, 1));
+                ++count;
+            }
+        }
+
+        CHECK(count == vertexArray.getVertexCount());
+    }
 }
