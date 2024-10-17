@@ -32,6 +32,7 @@
 
 #include <dinput.h>
 #include <mmsystem.h>
+#include <optional>
 
 
 namespace sf::priv
@@ -213,14 +214,14 @@ private:
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    unsigned int          m_index{};                              //!< Index of the joystick
-    JOYCAPS               m_caps{};                               //!< Joystick capabilities
-    IDirectInputDevice8W* m_device{};                             //!< DirectInput 8.x device
-    DIDEVCAPS             m_deviceCaps{};                         //!< DirectInput device capabilities
-    EnumArray<Joystick::Axis, int, Joystick::AxisCount> m_axes{}; //!< Offsets to the bytes containing the axes states, -1 if not available
-    std::array<int, Joystick::ButtonCount> m_buttons{}; //!< Offsets to the bytes containing the button states, -1 if not available
-    Joystick::Identification m_identification; //!< Joystick identification
-    JoystickState            m_state;          //!< Buffered joystick state
+    unsigned int          m_index{};      //!< Index of the joystick
+    JOYCAPS               m_caps{};       //!< Joystick capabilities
+    IDirectInputDevice8W* m_device{};     //!< DirectInput 8.x device
+    DIDEVCAPS             m_deviceCaps{}; //!< DirectInput device capabilities
+    EnumArray<Joystick::Axis, std::optional<unsigned int>, Joystick::AxisCount> m_axes{}; //!< Offsets to the bytes containing the axes states
+    std::array<std::optional<unsigned int>, Joystick::ButtonCount> m_buttons{}; //!< Offsets to the bytes containing the button states
+    Joystick::Identification m_identification;                                  //!< Joystick identification
+    JoystickState            m_state;                                           //!< Buffered joystick state
     bool                     m_buffered{}; //!< `true` if the device uses buffering, `false` if the device uses polling
 };
 

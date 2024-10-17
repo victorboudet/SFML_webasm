@@ -519,8 +519,8 @@ bool JoystickImpl::openDInput(unsigned int index)
     // Initialize DirectInput members
     m_device = nullptr;
 
-    m_axes.fill(-1);
-    m_buttons.fill(-1);
+    m_axes.fill(std::nullopt);
+    m_buttons.fill(std::nullopt);
 
     m_deviceCaps        = {};
     m_deviceCaps.dwSize = sizeof(DIDEVCAPS);
@@ -711,9 +711,9 @@ bool JoystickImpl::openDInput(unsigned int index)
             }
 
             // Set device's axis mode to absolute if the device reports having at least one axis
-            for (const int axis : m_axes)
+            for (const std::optional axis : m_axes)
             {
-                if (axis != -1)
+                if (axis.has_value())
                 {
                     property                   = {};
                     property.diph.dwSize       = sizeof(property);
@@ -847,17 +847,15 @@ JoystickCaps JoystickImpl::getCapabilitiesDInput() const
     // Count how many buttons have valid offsets
     caps.buttonCount = 0;
 
-    for (const int button : m_buttons)
-    {
-        if (button != -1)
+    for (const std::optional button : m_buttons)
+        if (button.has_value())
             ++caps.buttonCount;
-    }
 
     // Check which axes have valid offsets
     for (unsigned int i = 0; i < Joystick::AxisCount; ++i)
     {
         const auto axis = static_cast<Joystick::Axis>(i);
-        caps.axes[axis] = (m_axes[axis] != -1);
+        caps.axes[axis] = m_axes[axis].has_value();
     }
 
     return caps;
@@ -911,7 +909,7 @@ JoystickState JoystickImpl::updateDInputBuffered()
         for (unsigned int j = 0; j < Joystick::AxisCount; ++j)
         {
             const auto axis = static_cast<Joystick::Axis>(j);
-            if (m_axes[axis] == static_cast<int>(events[i].dwOfs))
+            if (m_axes[axis] == events[i].dwOfs)
             {
                 if ((axis == Joystick::Axis::PovX) || (axis == Joystick::Axis::PovY))
                 {
@@ -945,11 +943,9 @@ JoystickState JoystickImpl::updateDInputBuffered()
             continue;
 
         // Get the current state of each button
-        for (unsigned int j = 0; j < Joystick::ButtonCount; ++j)
-        {
-            if (m_buttons[j] == static_cast<int>(events[i].dwOfs))
+        for (std::size_t j = 0; j < m_buttons.size(); ++j)
+            if (m_buttons[j] == events[i].dwOfs)
                 m_state.buttons[j] = (events[i].dwData != 0);
-        }
     }
 
     m_state.connected = true;
@@ -1001,12 +997,12 @@ JoystickState JoystickImpl::updateDInputPolled()
         for (unsigned int i = 0; i < Joystick::AxisCount; ++i)
         {
             const auto axis = static_cast<Joystick::Axis>(i);
-            if (m_axes[axis] != -1)
+            if (m_axes[axis].has_value())
             {
                 if ((axis == Joystick::Axis::PovX) || (axis == Joystick::Axis::PovY))
                 {
                     const unsigned short value = LOWORD(
-                        *reinterpret_cast<const DWORD*>(reinterpret_cast<const char*>(&joystate) + m_axes[axis]));
+                        *reinterpret_cast<const DWORD*>(reinterpret_cast<const char*>(&joystate) + *m_axes[axis]));
 
                     if (value != 0xFFFF)
                     {
@@ -1024,7 +1020,7 @@ JoystickState JoystickImpl::updateDInputPolled()
                 else
                 {
                     state.axes[axis] = (static_cast<float>(*reinterpret_cast<const LONG*>(
-                                            reinterpret_cast<const char*>(&joystate) + m_axes[axis])) +
+                                            reinterpret_cast<const char*>(&joystate) + *m_axes[axis])) +
                                         0.5f) *
                                        100.f / 32767.5f;
                 }
@@ -1038,9 +1034,9 @@ JoystickState JoystickImpl::updateDInputPolled()
         // Get the current state of each button
         for (unsigned int i = 0; i < Joystick::ButtonCount; ++i)
         {
-            if (m_buttons[i] != -1)
+            if (m_buttons[i].has_value())
             {
-                const BYTE value = *reinterpret_cast<const BYTE*>(reinterpret_cast<const char*>(&joystate) + m_buttons[i]);
+                const BYTE value = *reinterpret_cast<const BYTE*>(reinterpret_cast<const char*>(&joystate) + *m_buttons[i]);
 
                 state.buttons[i] = ((value & 0x80) != 0);
             }
@@ -1099,10 +1095,10 @@ BOOL CALLBACK JoystickImpl::deviceObjectEnumerationCallback(const DIDEVICEOBJECT
             joystick.m_axes[Joystick::Axis::V] = DIJOFS_RY;
         else if (deviceObjectInstance->guidType == guids::GUID_Slider)
         {
-            if (joystick.m_axes[Joystick::Axis::U] == -1)
-                joystick.m_axes[Joystick::Axis::U] = DIJOFS_SLIDER(0);
+            if (!joystick.m_axes[Joystick::Axis::U].has_value())
+                joystick.m_axes[Joystick::Axis::U] = static_cast<unsigned int>(DIJOFS_SLIDER(0));
             else
-                joystick.m_axes[Joystick::Axis::V] = DIJOFS_SLIDER(1);
+                joystick.m_axes[Joystick::Axis::V] = static_cast<unsigned int>(DIJOFS_SLIDER(1));
         }
         else
             return DIENUM_CONTINUE;
@@ -1128,7 +1124,7 @@ BOOL CALLBACK JoystickImpl::deviceObjectEnumerationCallback(const DIDEVICEOBJECT
         // POVs
         if (deviceObjectInstance->guidType == guids::GUID_POV)
         {
-            if (joystick.m_axes[Joystick::Axis::PovX] == -1)
+            if (!joystick.m_axes[Joystick::Axis::PovX].has_value())
             {
                 joystick.m_axes[Joystick::Axis::PovX] = DIJOFS_POV(0);
                 joystick.m_axes[Joystick::Axis::PovY] = DIJOFS_POV(0);
@@ -1142,9 +1138,9 @@ BOOL CALLBACK JoystickImpl::deviceObjectEnumerationCallback(const DIDEVICEOBJECT
         // Buttons
         for (unsigned int i = 0; i < Joystick::ButtonCount; ++i)
         {
-            if (joystick.m_buttons[i] == -1)
+            if (!joystick.m_buttons[i].has_value())
             {
-                joystick.m_buttons[i] = DIJOFS_BUTTON(static_cast<int>(i));
+                *joystick.m_buttons[i] = DIJOFS_BUTTON(static_cast<int>(i));
                 break;
             }
         }
