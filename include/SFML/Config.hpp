@@ -68,6 +68,11 @@
 
     #endif
 
+#elif defined(__EMSCRIPTEN__)
+
+        // Emscripten environment
+        #define SFML_SYSTEM_EMSCRIPTEN
+
 #elif defined(__unix__)
 
     // UNIX system, see which one it is
