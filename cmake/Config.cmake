@@ -68,7 +68,10 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Android")
     set(SFML_OS_ANDROID 1)
     # use the OpenGL ES implementation on Android
     set(OPENGL_ES 1)
-
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
+    set(SFML_OS_EMSCRIPTEN 1)
+    # use the OpenGL ES implementation on Emscripten
+    set(OPENGL_ES 1)
 # comparing CMAKE_SYSTEM_NAME with "CYGWIN" generates a false warning depending on the CMake version
 # let's avoid it so the actual error is more visible
 elseif(${CYGWIN})
