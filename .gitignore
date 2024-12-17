@@ -33,6 +33,7 @@
 
 # Build folders
 build/
+build_webasm/
 
 # Cache/IDE folders
 .cache/
