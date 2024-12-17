@@ -144,6 +144,9 @@ if (SFML_OS_EMSCRIPTEN)
 
     # Other Emscripten-specific flags or definitions
     add_definitions(-DSFML_OPENGL_ES)
+
+    # Adding freetype in the Emscripten toolchain is a bit tricky
+    add_compile_options("-s" "USE_FREETYPE=1")
 endif()
 
 # Install directories
