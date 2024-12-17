@@ -86,7 +86,7 @@
     #include <SFML/Window/iOS/EaglContext.hpp>
     typedef sf::priv::EaglContext ContextType;
 
-#elif defined(SFML_SYSTEM_ANDROID)
+#elif defined(SFML_SYSTEM_ANDROID) || defined(SFML_SYSTEM_EMSCRIPTEN)
 
     #include <SFML/Window/EglContext.hpp>
     typedef sf::priv::EglContext ContextType;
